@@ -4,5 +4,8 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"python.defaultInterpreterPath": "./env/scripts/activate",
+    	"python.terminal.activateEnvironment": true
+	}
 }
