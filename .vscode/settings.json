@@ -1,0 +1,4 @@
+{
+    "python.defaultInterpreterPath": "./env/scripts/activate", // Adjust path if using Windows
+    "python.terminal.activateEnvironment": true
+}
