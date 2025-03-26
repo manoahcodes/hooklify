@@ -97,7 +97,7 @@ DATABASES = {
 }
 
 CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=30)
-DATABASE_URL = config("DEV_DATABASE_URL")
+DATABASE_URL = config("PROD_DATABASE_URL")
 
 if DATABASE_URL is not None:
     DATABASES = {
