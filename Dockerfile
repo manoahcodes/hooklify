@@ -1,6 +1,6 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-ARG PYTHON_VERSION=3.12-slim-bullseye
+ARG PYTHON_VERSION=3.13-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
@@ -53,8 +53,8 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # run any other commands that do not need the database
 # such as:
 
-# RUN python manage.py vendor_pull
-# RUN python manage.py collectstatic --noinput
+RUN python manage.py vendor_pull
+RUN python manage.py collectstatic --noinput
 
 # whitenoise -> s3
 
