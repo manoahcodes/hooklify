@@ -5,6 +5,12 @@
 
 <p>I want your mane</p>
 
+{% if user.is_authenticated %}
+<p>Welcome, {{ user.username }}!</p>
+{% else %}
+<p>Welcome, guest!</p>
+{% endif %}
+
 Page visits: {{ page_visit_count }}
 <br />
 Total page visits: {{ total_visits_count }} 
