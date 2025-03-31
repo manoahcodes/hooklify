@@ -1,6 +1,6 @@
 # Set the python version as a build-time argument
 # with Python 3.12 as the default
-ARG PYTHON_VERSION=3.13-slim-bullseye
+ARG PYTHON_VERSION=3.13.0
 FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
@@ -65,7 +65,7 @@ ARG PROJ_NAME="backend"
 # this script will execute at runtime when
 # the container starts and the database is available
 RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
-    printf "RUN_PORT=\"\${PORT:-3000}\"\n\n" >> ./paracord_runner.sh && \
+    printf "RUN_PORT=\"\${PORT:-80}\"\n\n" >> ./paracord_runner.sh && \
     printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
     printf "gunicorn ${PROJ_NAME}.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
 
