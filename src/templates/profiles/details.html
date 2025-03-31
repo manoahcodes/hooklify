@@ -8,9 +8,9 @@
 {% if perms.auth %}
 {% if perms.auth.view_user %}
 <div>
-    First Name:{{ instance.username }}
-    Last Name:{{ instance.last_name }}
-    Email:{{ instance.email }}
+    <h1>First Name: {{ instance.first_name }}</h1>
+    <h1>Last Name: {{ instance.last_name }}</h1>
+    <h1>Email: {{ instance.email }}</h1>
 </div>
 {% else %}
 <p>You are not allowed to see this</p>
