@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'pull',
     'visits',
     'accounts',
+    'profiles',
 
     # THIRD PARTY APPS
     "allauth_ui",
@@ -166,9 +167,10 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 SOCIALACCOUNT_PROVIDERS = {
-    "github": {
+    'github': {
         'SCOPE': [
-            'user:email',
+            'user',
+            'repo',
         ],
     }
 }
