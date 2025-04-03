@@ -38,7 +38,10 @@ class Customer(models.Model):
                         customer_id=self.paddle_id, operation=helpers.billing.UpdateCustomer(
                             email=email,
                             name=name,
-                            custom_data={"user_id": self.user.id},
+                            custom_data={
+                                "user_id": self.user.id, 
+                                "username": self.user.username
+                                },
                         )
                 )
                 else:
@@ -46,7 +49,10 @@ class Customer(models.Model):
                             raw=False, 
                             name=name, 
                             email=email, 
-                            custom_data={"user_id": self.user.id}
+                            custom_data={
+                                "user_id": self.user.id, 
+                                "username": self.user.username
+                                },
                         )
                     self.paddle_id = new_customer
         super().save(*args, **kwargs)
