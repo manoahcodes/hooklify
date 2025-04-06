@@ -1,8 +1,10 @@
+import helpers.billing
 from django.db import models
 from django.contrib.auth.models import Group, Permission
 from django.db.models.signals import post_save
 
 from django.conf import settings
+
 
 User = settings.AUTH_USER_MODEL
 
@@ -18,16 +20,111 @@ ALLOW_CUSTOM_GROUPS = True
 # Create your models here.
 class Subscription(models.Model):
     name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True, help_text="Description of the subscription plan")
     active = models.BooleanField(default=True)
     groups = models.ManyToManyField(Group, blank=True, related_name="subscriptions")
     permission = models.ManyToManyField(Permission, blank=True, related_name="subscriptions", limit_choices_to={"content_type__app_label": "subscriptions", "codename__in": [x[0] for x in SUBSCRIPTION_PERMISSIONS]})
-    
-    def __str__(self):
-        return self.name
+    paddle_id = models.CharField(max_length=255, null=True, blank=True)
+    order = models.IntegerField(default=1, help_text="Ordering on Django pricing page")
+    featured = models.BooleanField(default=True, help_text="Featured on Django pricing page")
+    updated = models.DateTimeField(auto_now=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    features = models.TextField(null=True, blank=True, help_text="Features of the subscription plan")
 
     class Meta:
         permissions = SUBSCRIPTION_PERMISSIONS
-        verbose_name = "Subscription Options"
+        ordering = ["order", "featured", "-updated"]
+        verbose_name = "Subscription"
+    
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.paddle_id:
+            paddle_id = helpers.billing.create_product(
+                raw=False,
+                name=self.name,
+                metadata={
+                    "subscription_plan_id": self.id,
+                    "subscription_plan_name": self.name
+                }
+            )
+            self.paddle_id = paddle_id
+        super().save(*args, **kwargs)
+
+    def get_features_list(self):
+        return [x.strip() for x in self.features.split("\n")] if self.features else []
+    
+class SubscriptionPrice(models.Model):
+
+    class IntervalChoices(models.TextChoices):
+        MONTHLY = "month", "Monthly"
+        YEARLY = "year", "Yearly"
+
+    subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, blank=True, null=True, related_name="prices")
+    paddle_id = models.CharField(max_length=255, null=True, blank=True)
+    interval = models.CharField(max_length=255, default=IntervalChoices.MONTHLY, choices=IntervalChoices.choices)
+    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, default=0.00, help_text="Price of the subscription plan and remove decimal places when updating or creating a price")
+    order = models.IntegerField(default=1, help_text="Ordering on Django pricing page")
+    featured = models.BooleanField(default=True, help_text="Featured on Django pricing page")
+    updated = models.DateTimeField(auto_now=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["subscription__order", "order", "featured", "-updated"]
+
+    @property
+    def display_description(self):
+        return self.subscription.description if self.subscription.description else "This subscription plan is still in the development pharse and is coming soon."
+
+    @property
+    def get_features_list(self):
+        if not self.subscription:
+            return []
+        return self.subscription.get_features_list()
+
+    @property
+    def display_sub_name(self):
+        return self.subscription.name if self.subscription.name else "Plan"
+
+    @property
+    def product_paddle_id(self):
+        if not self.subscription:
+            return None
+        return self.subscription.paddle_id
+    
+    @property
+    def paddle_currency(self):
+        return "USD"
+    
+    def __str__(self):
+        return self.subscription.name
+    
+    def save(self, *args, **kwargs):
+        if (not self.paddle_id and self.product_paddle_id is not None):
+            paddle_id = helpers.billing.create_price(
+                raw=False,
+                product_id=self.product_paddle_id,
+                amount=self.price,
+                currency_code=self.paddle_currency,
+                interval=self.interval,
+                desc=self.subscription.name,
+                metadata={
+                    "subscription_plan_id": self.subscription.id,
+                    "subscription_plan_name": self.subscription.name
+                }
+            )
+            self.paddle_id = paddle_id
+        super().save(*args, **kwargs)
+
+        if self.featured and self.subscription:
+            qs = SubscriptionPrice.objects.filter(
+                subscription=self.subscription,
+                interval=self.interval,
+            ).exclude(id=self.id)
+            qs.update(featured=False)
+
+
 
 class UserSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")

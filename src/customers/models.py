@@ -24,7 +24,7 @@ class Customer(models.Model):
             if self.init_email_confirmed and self.init_email:
                 email = self.init_email
                 name = self.user.username
-                if email:
+                if email != "" or email is not None and email:
                     # Check if the customer already exists in Paddle
                         customers = helpers.billing.paddle.customers.list()
                         customers_list = list(customers)
