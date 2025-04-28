@@ -6,11 +6,11 @@ RUN_PORT="${PORT:-80}"
 
 echo "Running Django setup..."
 
-# Collect static files
-python manage.py collectstatic --noinput
-
 # Pull vendor files
 python manage.py vendor_pull || echo "Warning: vendor_pull failed but continuing..."
+
+# Collect static files
+python manage.py collectstatic --noinput
 
 # Run migrations
 python manage.py migrate --noinput
