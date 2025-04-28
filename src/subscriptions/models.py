@@ -1,5 +1,6 @@
 import helpers.billing
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import Group, Permission
 from django.db.models.signals import post_save
 from django.urls import reverse
@@ -136,6 +137,28 @@ class SubscriptionStatus(models.TextChoices):
     PAUSED = "paused", "Paused"
     TRIALING = "trialing", "Trialing"
 
+class UserSubscriptionQuerySet(models.QuerySet):
+    def by_active_trialing(self):
+        active_qs_lookup = (
+            Q(status = SubscriptionStatus.ACTIVE) |
+            Q(status = SubscriptionStatus.TRIALING)
+        )
+        return self.filter(active_qs_lookup)
+
+    def by_user_ids(self, user_ids=None):
+        if isinstance(user_ids, list):
+            return self.filter(user_id__in=user_ids)
+        elif isinstance(user_ids, int):
+           return self.filter(user_id__in=[user_ids])
+        return self
+
+class UserSubscriptionManager(models.Manager):
+    def get_queryset(self):
+        return UserSubscriptionQuerySet(self.model, using=self._db)
+
+    # def by_user_ids(self, user_ids=None):
+    #     return self.get_queryset().by_user_ids(user_ids=user_ids)
+
 class UserSubscription(models.Model):
     # FIELDS
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
@@ -148,8 +171,13 @@ class UserSubscription(models.Model):
     ends_at = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
     status = models.CharField(max_length=50, choices=SubscriptionStatus.choices, help_text="Status of the subscription plan", null=True, blank=True)
 
+    objects = UserSubscriptionManager()
+
     def get_absolute_url(self):
         return reverse("billing_details")
+    
+    def get_cancle_url(self):
+        return reverse("billing_cancellation")
     
     @property
     def is_active_status(self):

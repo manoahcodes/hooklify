@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 
 from subscriptions.models import SubscriptionPrice, UserSubscription
+from subscriptions import utils as subs_utils
 
 
 @login_required
@@ -12,18 +13,14 @@ def user_subscription_view(request):
     user_sub_obj, created = UserSubscription.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
-        if user_sub_obj.paddle_id:
-            sub_data = helpers.billing.get_subscription_plan(
-                user_sub_obj.paddle_id, raw=False
-            )
-            for k, v in sub_data.items():
-                setattr(user_sub_obj, k, v)
-            user_sub_obj.save()
+        finished = subs_utils.refresh_users_subs(user_ids=[request.user.id])
+        if finished:
+            messages.success(request, "Your subscription has been updated.")
+        else:
+            messages.error(request, "There was an error updating your subscription.")
         return redirect(user_sub_obj.get_absolute_url())
 
-    return render(
-        request, "subscriptions/user_details.html", {"subscription": user_sub_obj}
-    )
+    return render(request, "subscriptions/user_details.html", {"subscription": user_sub_obj})
 
 
 @login_required
