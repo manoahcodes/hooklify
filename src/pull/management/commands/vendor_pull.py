@@ -9,9 +9,7 @@ STATICFILES_VENDOR_DIR = getattr(settings, "STATICFILES_VENDOR_DIR", None)
 VENDOR_STATICFILES = {
     "flowbite.min.css": "https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css",
     "flowbite.min.js": "https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js",
-    "flowbite.min.js.map": "https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js.map",
-    "paddle.js": "https://cdn.paddle.com/paddle/v2/paddle.js",
-    "paddle.js.map": "https://cdn.paddle.com/paddle/v2/paddle.js.map",
+    "flowbite.min.js.map": "https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js.map"
 }
 
 class Command(BaseCommand):
