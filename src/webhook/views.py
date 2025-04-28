@@ -1,6 +1,5 @@
 # Standard Library
 import json
-import logging
 
 # Django Imports
 from django.http import HttpResponse, JsonResponse
@@ -16,20 +15,17 @@ from paddle_billing.Notifications import Secret, Verifier
 from helpers.billing import get_subscription_plan, cancel_old_subscription
 from subscriptions.models import SubscriptionPrice, UserSubscription, SubscriptionStatus
 
-# Constants & Logger
+# Constants
 PADDLE_WEBHOOK_SECRET_TRANSACTIONAL_KEY = config("PADDLE_WEBHOOK_TRANSACTIONAL_SECRET_KEY", default="", cast=str)
 PADDLE_WEBHOOK_SECRET_SUBSCRIPTION_KEY = config("PADDLE_WEBHOOK_SUBSCRIPTION_SECRET_KEY", default="", cast=str)
 
-
-logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
 @csrf_exempt
 @require_POST
 def paddle_transaction_webhook_view(request):
-    # Log raw payload
-    logger.info("Paddle Webhook Payload: %s", request.body.decode("utf-8"))
+    """Handles Paddle transaction.completed webhook events."""
 
     # Verify signature
     if not Verifier().verify(request, Secret(PADDLE_WEBHOOK_SECRET_TRANSACTIONAL_KEY)):
@@ -80,9 +76,9 @@ def paddle_transaction_webhook_view(request):
             if existing_sub.paddle_id and existing_sub.paddle_id != txn_sub_id:
                 try:
                     cancel_response = cancel_old_subscription(txn_id=existing_sub.paddle_id)
-                    logger.info(f"Canceled old subscription {existing_sub.paddle_id}: {cancel_response}")
+                    JsonResponse({f"Canceled old subscription {existing_sub.paddle_id}: {cancel_response}"}, status=200)
                 except Exception as cancel_err:
-                    logger.warning(f"Failed to cancel old subscription: {str(cancel_err)}")
+                    JsonResponse({f"Failed to cancel old subscription: {str(cancel_err)}"}, status=500)
         except UserSubscription.DoesNotExist:
             existing_sub = None
 
@@ -103,7 +99,6 @@ def paddle_transaction_webhook_view(request):
         return JsonResponse({"status": "Subscription successfully updated"}, status=200)
 
     except Exception as e:
-        logger.error(f"Webhook error: {str(e)}")
         return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -111,8 +106,6 @@ def paddle_transaction_webhook_view(request):
 @require_POST
 def paddle_subscription_cancelled_webhook_view(request):
     """Handles Paddle subscription.canceled webhook events."""
-
-    logger.info("Paddle Webhook Payload: %s", request.body.decode("utf-8"))
 
     if not Verifier().verify(request, Secret(PADDLE_WEBHOOK_SECRET_SUBSCRIPTION_KEY)):
         return HttpResponse("Invalid signature", status=400)
@@ -170,5 +163,4 @@ def paddle_subscription_cancelled_webhook_view(request):
         return JsonResponse({"status": "Subscription cancelled and updated."}, status=200)
 
     except Exception as e:
-        logger.error(f"Webhook error: {str(e)}")
         return JsonResponse({"error": str(e)}, status=500)
