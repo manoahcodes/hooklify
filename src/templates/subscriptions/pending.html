@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block navbar %}{% endblock navbar %}
+
+{% block content %}
+<div class="text-center p-10">
+    <h2 class="text-2xl font-bold">Almost there…</h2>
+    <p class="mt-4">We're finalizing your subscription. This page will refresh automatically.</p>
+    <div class="mt-6 animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-gray-900 mx-auto"></div>
+</div>
+
+<!-- Auto refresh every 5 seconds -->
+<meta http-equiv="refresh" content="30;url={% url 'paddle_checkout_end' %}">
+{% endblock content %}

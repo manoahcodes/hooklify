@@ -46,7 +46,8 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 DEBUG = config("DJANGO_DEBUG", cast=bool, default=False)
 
 ALLOWED_HOSTS = [
-    ".railway.app"
+    ".railway.app",
+    ".ngrok-free.app"
 ]
 
 if DEBUG:
@@ -74,6 +75,8 @@ INSTALLED_APPS = [
     'profiles',
     'subscriptions',
     'customers',
+    'checkout',
+    'webhook',
 
     # THIRD PARTY APPS
     "allauth_ui",
@@ -129,17 +132,17 @@ DATABASES = {
     }
 }
 
-CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=30)
-DATABASE_URL = config("PROD_DATABASE_URL", default=None)
+# CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=30)
+# DATABASE_URL = config("PROD_DATABASE_URL", default=None)
 
-if DATABASE_URL is not None:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL, 
-            conn_max_age=CONN_MAX_AGE,
-            conn_health_checks=True,
-            )
-    }
+# if DATABASE_URL is not None:
+#     DATABASES = {
+#         'default': dj_database_url.config(
+#             default=DATABASE_URL, 
+#             conn_max_age=CONN_MAX_AGE,
+#             conn_health_checks=True,
+#             )
+#     }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -223,3 +226,27 @@ STORAGES = {
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Logging Settings
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/paddle_webhooks.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        '__main__': {  # this allows logging from non-Django modules too
+            'handlers': ['file'],
+            'level': 'INFO',
+        },
+    },
+}

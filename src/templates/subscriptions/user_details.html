@@ -1,0 +1,29 @@
+{% extends "base.html" %} 
+{% block head_title %}{{ block.super }} - Billing{% endblock head_title %} 
+
+{% block content %}
+<h1 class="text-lg font-medium">Your Subscription</h1>
+
+<p><strong>Plan name: {{ subscription.subscription.name }}</strong></p>
+<p><strong>Status: {{ subscription.status|title }}</strong></p>
+<p><strong>Member since: {{ subscription.started_at|timesince }} ({{ subscription.started_at }})</strong></p>
+
+{% if not subscription.starts_at %}
+{% comment %} <p><strong>Start: - </strong></p> {% endcomment %}
+{% else %}
+<p><strong>Start: {{ subscription.starts_at }}</strong></p>
+{% endif %}
+
+{% if not subscription.ends_at %}
+{% comment %} <p><strong>End: - </strong></p> {% endcomment %}
+{% else %}
+<p><strong>End: {{ subscription.ends_at|timeuntil }} ({{ subscription.ends_at }})</strong></p>
+{% endif %}
+
+<form action="" method="POST">
+{% csrf_token %}
+<button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Update Subscription</button>
+<a href="{% url 'billing_cancellation' %}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Cancel Subscription</a>
+</form>
+
+{% endblock content %}

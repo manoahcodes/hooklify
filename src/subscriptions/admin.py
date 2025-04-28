@@ -14,6 +14,11 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ["name", "active"]
     readonly_fields = ('paddle_id',)
 
+class UserSubscriptionAdmin(admin.ModelAdmin):
+    model = SubscriptionPriceAdmin
+    list_display = ["user", "subscription", "active"]
+    readonly_fields = ('user', 'subscription','paddle_id', 'active', 'cancelled', 'starts_at', 'ends_at', 'started_at', 'status')
+
 admin.site.register(Subscription, SubscriptionAdmin)
-admin.site.register(UserSubscription)
+admin.site.register(UserSubscription, UserSubscriptionAdmin)
 admin.site.register(SubscriptionPrice)

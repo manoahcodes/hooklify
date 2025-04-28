@@ -4,10 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block head_title %}Hooklify{% endblock head_title %}</title>
+    <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
     {% include "base/css.html" %}
   </head>
   <body>
-    {% include "nav/navbar.html" %} 
+    {% if not hide_navbar %}
+      {% include "nav/navbar.html" %}
+    {% endif %}
+    
     {% include 'base/messages.html' with messages=messages %}
     {% block content %} {% endblock content %}
     {% include "base/js.html" %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block navbar %}{% endblock navbar %}
+{% block title %}{{ block.super }} - Checkout{% endblock title %}
+
+{% block content %}
+<div class="w-full h-screen flex">
+  <div class="w-full flex flex-col md:flex-row">
+    
+    <!-- Left: Checkout Section -->
+    <div class="w-full md:w-2/3 p-8 border-r border-gray-200 flex flex-col">
+      <h1 class="text-4xl font-extrabold text-gray-900 text-center mb-8">
+        Checkout
+      </h1>
+      <!-- Container for Paddle's inline checkout -->
+      <div class="checkout-container flex"></div>
+    </div>
+    
+    <!-- Right: Order Summary -->
+    <div class="w-full md:w-1/3 bg-gray-100 p-8 flex flex-col">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">
+        Your Order
+      </h2>
+      <!-- Product summary details -->
+      <div class="flex items-center space-x-4 mb-6">
+        <div>
+          <p class="font-medium text-gray-700">{{ product_name }}</p>
+          <p class="text-gray-500 text-sm">Digital access</p>
+        </div>
+      </div>
+      <!-- Order cost breakdown -->
+      <hr class="mb-6 border-gray-300" />
+      <div class="space-y-2">
+        <div class="flex justify-between">
+          <span class="text-gray-700">Subtotal</span>
+          <span class="text-gray-700">${{ product_price }}</span>
+        </div>
+        <div class="flex justify-between font-bold text-lg mt-4">
+          <span>Total</span>
+          <span>${{ total }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+  Paddle.Environment.set("sandbox");
+  Paddle.Initialize({
+    token: 'test_dcf3afa2658c628c94f7b363e6b',
+    checkout: {
+      settings: {
+        allowLogout: false,
+        displayMode: "inline",
+        theme: "light",
+        locale: "en",
+        frameTarget: "checkout-container",
+        frameInitialHeight: "450",
+        frameStyle: "width: 100%; min-width: 312px; background-color: transparent; border: none;",
+        variant: "one-page",
+        successUrl: "{{ success_url }}"
+      }
+    },
+  }),
+  
+  Paddle.Checkout.open({
+    cancelUrl: "{{ cancel_url }}",
+    items: [
+      {
+        priceId: "{{ price_id }}",
+        quantity: 1,
+      }
+    ],
+    customer: {
+      id: "{{ customer_id }}"
+    },
+  })
+</script>
+{% endblock content %}

@@ -2,6 +2,7 @@ import helpers.billing
 from django.db import models
 from django.contrib.auth.models import Group, Permission
 from django.db.models.signals import post_save
+from django.urls import reverse
 
 from django.conf import settings
 
@@ -74,6 +75,10 @@ class SubscriptionPrice(models.Model):
         ordering = ["subscription__order", "order", "featured", "-updated"]
 
     @property
+    def get_checkout_url(self):
+        return reverse("product_price_redirect", kwargs= {"price_id": self.id})
+
+    @property
     def display_description(self):
         return self.subscription.description if self.subscription.description else "This subscription plan is still in the development pharse and is coming soon."
 
@@ -124,12 +129,54 @@ class SubscriptionPrice(models.Model):
             ).exclude(id=self.id)
             qs.update(featured=False)
 
-
+class SubscriptionStatus(models.TextChoices):
+    ACTIVE = "active", "Active"
+    CANCELLED = "canceled", "Canceled"
+    PAST_DUE = "past_due", "Past Due"
+    PAUSED = "paused", "Paused"
+    TRIALING = "trialing", "Trialing"
 
 class UserSubscription(models.Model):
+    # FIELDS
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="subscription")
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, related_name="user_subscription", null=True, blank=True)
-    active = models.BooleanField(default=True)
+    paddle_id = models.CharField(max_length=255, null=True, blank=True)
+    active = models.BooleanField(default=False)
+    cancelled = models.BooleanField(default=False)
+    started_at = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
+    starts_at = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
+    ends_at = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
+    status = models.CharField(max_length=50, choices=SubscriptionStatus.choices, help_text="Status of the subscription plan", null=True, blank=True)
+
+    def get_absolute_url(self):
+        return reverse("billing_details")
+    
+    @property
+    def is_active_status(self):
+        return self.status in [
+            SubscriptionStatus.ACTIVE, 
+            SubscriptionStatus.TRIALING,
+            ]
+    
+    # @property
+    # def plan_name(self):
+    #     if not self.subscription.name:
+    #         return None
+    #     return self.subscription.name
+
+    # def serialize(self):
+    #     return {
+    #         "plan_name": self.plan_name,
+    #         "status": self.status,
+    #         "starts_at": self.starts_at,
+    #         "ends_at": self.ends_at,
+    #     }
+
+    def save(self, *args, **kwargs):
+        if (self.started_at is None and self.starts_at is not None):
+            self.started_at = self.starts_at
+        super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f"{self.user.username} - {self.subscription.name}" if self.subscription else self.user.username

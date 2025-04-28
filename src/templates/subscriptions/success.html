@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block navbar %}{% endblock navbar %}
+
+{% block content %}
+<h2>Congratulations {{ user.username }}!</h2>
+<p>You are now subscribed to the <span><strong>{{ subscription_name }}</strong></span> plan.</p>
+
+<ul>
+  {% for feature in subscription_features %}
+    <li>{{ feature }}</li>
+  {% endfor %}
+</ul>
+
+{% endblock content%}
