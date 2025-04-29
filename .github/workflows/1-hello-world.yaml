@@ -1,5 +1,6 @@
 name: 1 - Hello World Github Action
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
