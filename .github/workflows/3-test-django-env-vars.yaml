@@ -1,9 +1,9 @@
 name: 3 - Test Django Envrionment Variables
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
 
 
 jobs:
