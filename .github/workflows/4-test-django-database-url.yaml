@@ -12,7 +12,6 @@ jobs:
     env:
       DJANGO_DEBUG: 0
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      # DJANGO_SECRET_KEY: testing123
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
