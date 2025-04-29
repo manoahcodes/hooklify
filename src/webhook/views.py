@@ -76,9 +76,13 @@ def paddle_transaction_webhook_view(request):
             if existing_sub.paddle_id and existing_sub.paddle_id != txn_sub_id:
                 try:
                     cancel_response = cancel_old_subscription(txn_id=existing_sub.paddle_id)
-                    JsonResponse({f"Canceled old subscription {existing_sub.paddle_id}: {cancel_response}"}, status=200)
+
+                    if cancel_response.status == "canceled":
+                        JsonResponse({"message": f"Subscription was already canceled:"}, status=200)
+                        
+                    JsonResponse({"message": f"Canceled old subscription {existing_sub.paddle_id}: {cancel_response}"}, status=200)
                 except Exception as cancel_err:
-                    JsonResponse({f"Failed to cancel old subscription: {str(cancel_err)}"}, status=500)
+                    JsonResponse({"message": f"Failed to cancel old subscription: {str(cancel_err)}"}, status=500)
         except UserSubscription.DoesNotExist:
             existing_sub = None
 
@@ -99,6 +103,7 @@ def paddle_transaction_webhook_view(request):
         return JsonResponse({"status": "Subscription successfully updated"}, status=200)
 
     except Exception as e:
+        print("Error in Paddle webhook:", str(e))
         return JsonResponse({"error": str(e)}, status=500)
 
 

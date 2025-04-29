@@ -1,9 +1,12 @@
 import helpers.billing
+import datetime
+
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import Group, Permission
 from django.db.models.signals import post_save
 from django.urls import reverse
+from django.utils import timezone
 
 from django.conf import settings
 
@@ -138,6 +141,28 @@ class SubscriptionStatus(models.TextChoices):
     TRIALING = "trialing", "Trialing"
 
 class UserSubscriptionQuerySet(models.QuerySet):
+    def by_range(self, day_start=7, day_end=120):
+        now = timezone.now()
+        days_start_from_now = now + datetime.timedelta(days=day_start)
+        days_end_from_now = now + datetime.timedelta(days=day_end)
+        range_start = days_start_from_now.replace(hour=0, minute=0, second=0, microsecond=0)
+        range_end = days_end_from_now.replace(hour=23, minute=59, second=59, microsecond=59)
+        return self.filter(
+            ends_at__gte=range_start,
+            ends_at__lte=range_end,
+        )
+    
+    def by_days_ago(self, days_ago=5):
+        now = timezone.now()
+        in_n_days = now - datetime.timedelta(days=days_ago)
+        days_start = in_n_days.replace(hour=0, minute=0, second=0, microsecond=0)
+        days_end = in_n_days.replace(hour=23, minute=59, second=59, microsecond=59)
+        return self.filter(
+            ends_at__gte=days_start,
+            ends_at__lte=days_end,
+        )
+
+
     def by_active_trialing(self):
         active_qs_lookup = (
             Q(status = SubscriptionStatus.ACTIVE) |

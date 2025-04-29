@@ -3,17 +3,25 @@ import helpers.billing
 from customers.models import Customer
 from subscriptions.models import UserSubscription, Subscription
 
-def refresh_users_subs(user_ids=None, active_only=True):
+def refresh_users_subs(user_ids=None, active_only=True, days_ago=0, days_left=0, day_start=0, day_end=0, verbose=False):
     qs = UserSubscription.objects.all()
     if active_only:
         qs = qs.by_active_trialing()
     if user_ids is not None:
         qs = qs.by_user_ids(user_ids=user_ids)
+    if days_ago > 0:
+        qs = qs.by_days_ago(days_ago=days_ago)
+    if days_left > 0:
+        qs = qs.by_days_left(days_left=days_left)
+    if day_start > 0 and day_end > 0:
+        qs = qs.by_range(day_start=day_start, day_end=day_end)
 
     complete_count = 0
     qs_count = qs.count()
 
     for obj in qs:
+        if verbose:
+            print("Updating user", obj.user, obj.subscription, obj.ends_at)
         if obj.paddle_id:
             sub_data = helpers.billing.get_subscription_plan(obj.paddle_id, raw=False)
             for k, v in sub_data.items():
