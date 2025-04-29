@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DJANGO_DEBUG: 0
+      # DJANGO_SECRET_KEY: testing123
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,14 +19,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - name: Setup Django Secret Key
+        run: |
+          my_gena_key=$(openssl rand -base64 32)
+          echo "DJANGO_SECRET_KEY=$my_gena_key" >> $GITHUB_ENV
       - name: Install Requirements
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
       - name: Django Tests
         working-directory: ./src
-        env:
-          DJANGO_DEBUG: 0
-          DJANGO_SECRET_KEY: testing123
         run: |
           python manage.py test
