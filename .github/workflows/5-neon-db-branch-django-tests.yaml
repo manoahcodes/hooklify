@@ -1,9 +1,9 @@
 name: 5 - Branch Neon DB for Django Tests
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - main
 
 
 jobs:
@@ -11,7 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DJANGO_DEBUG: 0
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+      NEON_PROD_BRANCH: "PRODUCTION"
+      NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+      NEON_GITHUB_BRANCH: "gh-delete"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,10 +23,24 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Setup Django Secret Key
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11'
+      - name: Setup Neon Database
         run: |
-          my_gena_key=$(openssl rand -base64 32)
-          echo "DJANGO_SECRET_KEY=$my_gena_key" >> $GITHUB_ENV
+          npm install -g neonctl
+      - name: Delete Neon Branch
+        continue-on-error: true
+        run: |
+          neonctl branchs delete "${{ secrets.NEON_GITHUB_BRANCH }}" --project-id "${{ secrets.NEON_PROJECT_ID }}"
+      - name: Create Neon Branch
+        run: |
+          neonctl branchs create "${{ secrets.NEON_GITHUB_BRANCH }}" --parent "${{ secrets.NEON_PROD_BRANCH }}" --project-id "${{ secrets.NEON_PROJECT_ID }}"
+      - name: Database URL Env Val
+        run: |
+          CONN_STRING=$(neonctl connection-string --branch "${{ secrets.NEON_GITHUB_BRANCH }}" --project-id "${{ secrets.NEON_PROJECT_ID }}")
+          echo "DATABASE_URL=$CONN_STRING" >> $GITHUB_ENV
       - name: Install Requirements
         run: |
           python -m pip install --upgrade pip
