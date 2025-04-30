@@ -1,4 +1,4 @@
-name: 4 - Test Django Secret Database URL
+name: 5 - Branch Neon DB for Django Tests
 on:
   workflow_dispatch:
   # push:
