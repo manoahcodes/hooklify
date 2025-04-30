@@ -33,10 +33,10 @@ jobs:
       - name: Delete Neon Branch
         continue-on-error: true
         run: |
-          neonctl branchs delete "${{ secrets.NEON_GITHUB_BRANCH }}" --project-id "${{ secrets.NEON_PROJECT_ID }}"
+          neonctl branches delete "${{ secrets.NEON_GITHUB_BRANCH }}" --project-id "${{ secrets.NEON_PROJECT_ID }}"
       - name: Create Neon Branch
         run: |
-          neonctl branchs create "${{ secrets.NEON_GITHUB_BRANCH }}" --parent "${{ secrets.NEON_PROD_BRANCH }}" --project-id "${{ secrets.NEON_PROJECT_ID }}"
+          neonctl branches create "${{ secrets.NEON_GITHUB_BRANCH }}" --parent "${{ secrets.NEON_PROD_BRANCH }}" --project-id "${{ secrets.NEON_PROJECT_ID }}"
       - name: Database URL Env Val
         run: |
           CONN_STRING=$(neonctl connection-string --branch "${{ secrets.NEON_GITHUB_BRANCH }}" --project-id "${{ secrets.NEON_PROJECT_ID }}")
