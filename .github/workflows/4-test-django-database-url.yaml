@@ -25,7 +25,7 @@ jobs:
           echo "DJANGO_SECRET_KEY=$my_gena_key" >> $GITHUB_ENV
       - name: Echo Database URL
         run: |
-          echo "DATABASE_URL=${{ env.NEON_DATABASE_URL }}"
+          echo "DATABASE_URL=${{ secrets.NEON_DATABASE_URL }}"
           echo $DATABASE_URL
       - name: Install Requirements
         run: |
